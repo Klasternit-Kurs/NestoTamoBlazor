@@ -1,0 +1,37 @@
+﻿@page "/"
+@using Grpc.Core
+@using grpcStvari
+@using NestoTamoBlazor.Shared
+@inject KorisniciServ.KorisniciServClient _ksc
+@inject Konvertor _kon
+
+<button @onclick="Fetch">Teeeeest</button>
+<div>
+	@foreach (Korisnik k in _korisnici)
+	{
+		<p>
+			@k.Ime @k.Prezime
+			<ul>
+				@foreach (Adresa a in k.Adrese)
+				{
+					<li>@a.Ulica @a.Broj</li>
+				}
+			</ul>
+		</p>
+	}
+</div>
+@code
+{
+	private List<Korisnik> _korisnici = new List<Korisnik>();
+
+	private async Task Fetch()
+	{
+		var serverStream = _ksc.DajKorisnike(new TrebaBudePrazno());
+
+		await foreach(KorisnikMsg kms in serverStream.ResponseStream.ReadAllAsync())
+		{
+			_korisnici.Add(_kon.Konvert(kms));
+			StateHasChanged();
+		}
+	}
+}
